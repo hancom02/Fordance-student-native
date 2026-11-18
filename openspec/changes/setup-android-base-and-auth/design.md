@@ -45,24 +45,35 @@ See `proposal.md` for motivation and system scope. The target implementation wil
 - **Rationale**: Complete separation of UI presentation from business logic; easily unit-testable and lifecycle-aware.
 - **Alternatives Considered**: Simple stateless callbacks (hard to manage configuration changes and async loading states).
 
-## Architecture & Data Flow
+## Architecture & Folder Structure (Feature-First)
+
+The project adheres strictly to **Feature-First Clean Architecture** (referencing `geckospace-main-app` modules pattern), where each feature directory self-contains its own `presentation`, `domain`, and `data` layers:
 
 ```
-+-------------------------------------------------------------------------+
-| [LoginScreen / RegisterScreen] (Jetpack Compose UI)                     |
-|   | emits AuthUiEvent (e.g. OnSignInClicked(email, password))           |
-|   v                                                                     |
-| [AuthViewModel] (@HiltViewModel)                                        |
-|   | calls UseCase, updates AuthUiState, emits AuthUiEffect.NavigateHome |
-|   v                                                                     |
-| [SignInUseCase] (Domain Layer)                                          |
-|   | coordinates auth login and student role verification                |
-|   v                                                                     |
-| [AuthRepositoryImpl] (Data Layer)                                       |
-|   |--> Supabase Auth Client (signInWith(Email))                         |
-|   |--> Supabase Postgrest Client (verify role == 'student' in 'users')  |
-|   |--> UserPreferencesDataStore (saves session & user info)             |
-+-------------------------------------------------------------------------+
+com.fordance.student/
++-- core/
+|   +-- common/           (ResultWrapper, Dispatchers)
+|   +-- components/       (Shared Compose UI components)
+|   +-- datastore/        (UserPreferencesDataStore)
+|   +-- network/          (SupabaseConfig)
+|   +-- theme/            (Color, Type, Theme)
++-- di/                   (Global Hilt modules: NetworkModule, DataStoreModule)
++-- navigation/           (Screen routes, ForDanceNavGraph)
++-- features/
+|   +-- auth/
+|   |   +-- data/
+|   |   |   +-- remote/dto/ (UserDto)
+|   |   |   +-- repository/ (AuthRepositoryImpl)
+|   |   +-- domain/
+|   |   |   +-- model/      (StudentUser, UserSession)
+|   |   |   +-- repository/ (AuthRepository interface)
+|   |   |   +-- usecase/    (SignInUseCase, SignUpUseCase, GetSessionUseCase, SignOutUseCase)
+|   |   +-- presentation/   (AuthViewModel, LoginScreen, RegisterScreen)
+|   |   +-- di/             (AuthModule binding AuthRepository)
+|   +-- home/
+|       +-- presentation/   (HomePlaceholderScreen)
++-- ForDanceApp.kt        (@HiltAndroidApp)
++-- MainActivity.kt       (@AndroidEntryPoint Single Activity)
 ```
 
 ## Risks / Trade-offs
