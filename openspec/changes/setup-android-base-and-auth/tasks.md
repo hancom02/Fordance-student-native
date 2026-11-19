@@ -1,4 +1,4 @@
-# Tasks
+﻿# Tasks
 
 ## 1. Project Initialization & Gradle Scaffolding
 
@@ -31,4 +31,5 @@
 ## 5. End-to-End Verification
 
 - [x] 5.1 Build the complete Android project using `./gradlew assembleDebug` and verify build succeeds without compiler errors.
-- [ ] 5.2 Verify sign-in flow against live Supabase backend on emulator/device, verifying successful navigation and session persistence across app process kill and restart.
+- [x] 5.2 Verify sign-in flow against live Supabase backend on emulator/device, verifying successful navigation and session persistence across app process kill and restart.
+
