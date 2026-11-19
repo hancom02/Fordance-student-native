@@ -55,3 +55,7 @@ misc.xml
 # OS specific
 .DS_Store
 Thumbs.db
+
+*.sql
+*.backup
+*.backup.gz
