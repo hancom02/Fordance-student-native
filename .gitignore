@@ -59,3 +59,8 @@ Thumbs.db
 *.sql
 *.backup
 *.backup.gz
+
+# Backend
+backend/node_modules/
+backend/dist/
+backend/.env
