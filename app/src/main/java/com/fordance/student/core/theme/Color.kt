@@ -16,3 +16,8 @@ val TextPrimary = Color(0xFF1E1E1E)
 val TextSecondary = Color(0xFF757575)
 val TextPlaceholder = Color(0xFF9E9E9E)
 val ErrorColor = Color(0xFFD32F2F)
+
+val LevelBeginner = Color(0xFFFF9800)
+val LevelIntermediate = Color(0xFF2196F3)
+val LevelAdvanced = Color(0xFF9C27B0)
+val DarkOverlay = Color(0x99000000)

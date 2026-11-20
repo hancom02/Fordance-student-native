@@ -47,6 +47,8 @@ class UserPreferencesDataStore @Inject constructor(
         )
     }
 
+    val userIdFlow: Flow<String?> = userSessionFlow.map { it.userId }
+
     suspend fun saveSession(
         userId: String,
         email: String,
