@@ -44,8 +44,9 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`[FOR DANCE Backend] Server running at http://localhost:${port}`);
+  app.listen(Number(port), '0.0.0.0', () => {
+    console.log(`[FOR DANCE Backend] Server running at http://0.0.0.0:${port}`);
+    console.log(`[FOR DANCE Backend] Local IP: http://192.168.1.111:${port}`);
     console.log(`[FOR DANCE Backend] Health check: http://localhost:${port}/health`);
   });
 }
