@@ -2,17 +2,13 @@ package com.fordance.student.features.catalog.data.repository
 
 import com.fordance.student.core.common.IoDispatcher
 import com.fordance.student.core.common.ResultWrapper
-import com.fordance.student.core.data.dto.ClassDto
-import com.fordance.student.core.data.dto.InstructorDto
-import com.fordance.student.core.data.dto.SessionDto
 import com.fordance.student.core.data.mapper.toDomain
 import com.fordance.student.core.domain.model.CatalogFilter
 import com.fordance.student.core.domain.model.DanceClass
 import com.fordance.student.core.domain.model.Instructor
 import com.fordance.student.core.domain.model.Session
+import com.fordance.student.core.network.ForDanceApiService
 import com.fordance.student.features.catalog.domain.repository.CatalogRepository
-import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -20,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class CatalogRepositoryImpl @Inject constructor(
-    private val postgrest: Postgrest,
+    private val apiService: ForDanceApiService,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : CatalogRepository {
 
@@ -29,34 +25,35 @@ class CatalogRepositoryImpl @Inject constructor(
         filter: CatalogFilter?
     ): ResultWrapper<List<Session>> = withContext(ioDispatcher) {
         try {
-            val sessions = postgrest.from("sessions")
-                .select {
-                    filter {
-                        neq("status", "rejected")
-                        neq("status", "waiting")
-                        neq("status", "deleted")
+            val levelParam = filter?.levels?.firstOrNull()?.rawValue
+            val genreParam = filter?.genres?.firstOrNull()
+            val instructorIdParam = filter?.selectedInstructorIds?.firstOrNull()
 
-                        if (!query.isNullOrBlank()) {
-                            ilike("session_name", "%${query.trim()}%")
-                        }
+            val response = apiService.getCatalogSessions(
+                query = query?.takeIf { it.isNotBlank() },
+                level = levelParam,
+                genre = genreParam,
+                instructorId = instructorIdParam
+            )
 
-                        if (filter != null) {
-                            if (filter.levels.isNotEmpty()) {
-                                isIn("level", filter.levels.map { it.rawValue })
-                            }
-                            if (filter.genres.isNotEmpty()) {
-                                isIn("genre", filter.genres.toList())
-                            }
-                            if (filter.selectedInstructorIds.isNotEmpty()) {
-                                isIn("instructor_id", filter.selectedInstructorIds.toList())
-                            }
-                        }
+            if (response.success && response.data != null) {
+                var list = response.data.map { it.toDomain() }
+                // Apply multi-selection filters in memory if multiple are selected
+                if (filter != null) {
+                    if (filter.levels.isNotEmpty()) {
+                        list = list.filter { it.level in filter.levels }
                     }
-                    order(column = "id", order = Order.ASCENDING)
+                    if (filter.genres.isNotEmpty()) {
+                        list = list.filter { it.genre in filter.genres }
+                    }
+                    if (filter.selectedInstructorIds.isNotEmpty()) {
+                        list = list.filter { it.instructorId in filter.selectedInstructorIds }
+                    }
                 }
-                .decodeList<SessionDto>()
-
-            ResultWrapper.Success(sessions.map { it.toDomain() })
+                ResultWrapper.Success(list)
+            } else {
+                ResultWrapper.Error(response.message ?: "Failed to search sessions")
+            }
         } catch (e: Exception) {
             ResultWrapper.Error(e.message ?: "Failed to search sessions", e)
         }
@@ -67,30 +64,34 @@ class CatalogRepositoryImpl @Inject constructor(
         filter: CatalogFilter?
     ): ResultWrapper<List<DanceClass>> = withContext(ioDispatcher) {
         try {
-            val classes = postgrest.from("classes")
-                .select {
-                    filter {
-                        if (!query.isNullOrBlank()) {
-                            ilike("class_name", "%${query.trim()}%")
-                        }
+            val levelParam = filter?.levels?.firstOrNull()?.rawValue
+            val genreParam = filter?.genres?.firstOrNull()
+            val instructorIdParam = filter?.selectedInstructorIds?.firstOrNull()
 
-                        if (filter != null) {
-                            if (filter.levels.isNotEmpty()) {
-                                isIn("level", filter.levels.map { it.rawValue })
-                            }
-                            if (filter.genres.isNotEmpty()) {
-                                isIn("genre", filter.genres.toList())
-                            }
-                            if (filter.selectedInstructorIds.isNotEmpty()) {
-                                isIn("instructor_id", filter.selectedInstructorIds.toList())
-                            }
-                        }
+            val response = apiService.getCatalogClasses(
+                query = query?.takeIf { it.isNotBlank() },
+                level = levelParam,
+                genre = genreParam,
+                instructorId = instructorIdParam
+            )
+
+            if (response.success && response.data != null) {
+                var list = response.data.map { it.toDomain() }
+                if (filter != null) {
+                    if (filter.levels.isNotEmpty()) {
+                        list = list.filter { it.level in filter.levels }
                     }
-                    order(column = "id", order = Order.ASCENDING)
+                    if (filter.genres.isNotEmpty()) {
+                        list = list.filter { it.genre in filter.genres }
+                    }
+                    if (filter.selectedInstructorIds.isNotEmpty()) {
+                        list = list.filter { it.instructorId in filter.selectedInstructorIds }
+                    }
                 }
-                .decodeList<ClassDto>()
-
-            ResultWrapper.Success(classes.map { it.toDomain() })
+                ResultWrapper.Success(list)
+            } else {
+                ResultWrapper.Error(response.message ?: "Failed to search classes")
+            }
         } catch (e: Exception) {
             ResultWrapper.Error(e.message ?: "Failed to search classes", e)
         }
@@ -98,19 +99,17 @@ class CatalogRepositoryImpl @Inject constructor(
 
     override suspend fun searchInstructors(query: String?): ResultWrapper<List<Instructor>> = withContext(ioDispatcher) {
         try {
-            val instructors = postgrest.from("users")
-                .select {
-                    filter {
-                        eq("role", "instructor")
-                        neq("active", false)
-                        if (!query.isNullOrBlank()) {
-                            ilike("name", "%${query.trim()}%")
-                        }
-                    }
+            val response = apiService.getCatalogInstructors()
+            if (response.success && response.data != null) {
+                var list = response.data.map { it.toDomain() }
+                if (!query.isNullOrBlank()) {
+                    val q = query.trim().lowercase()
+                    list = list.filter { it.name.lowercase().contains(q) || it.username.lowercase().contains(q) }
                 }
-                .decodeList<InstructorDto>()
-
-            ResultWrapper.Success(instructors.map { it.toDomain() })
+                ResultWrapper.Success(list)
+            } else {
+                ResultWrapper.Error(response.message ?: "Failed to search instructors")
+            }
         } catch (e: Exception) {
             ResultWrapper.Error(e.message ?: "Failed to search instructors", e)
         }
@@ -118,16 +117,12 @@ class CatalogRepositoryImpl @Inject constructor(
 
     override suspend fun getInstructors(): ResultWrapper<List<Instructor>> = withContext(ioDispatcher) {
         try {
-            val instructors = postgrest.from("users")
-                .select {
-                    filter {
-                        eq("role", "instructor")
-                        neq("active", false)
-                    }
-                }
-                .decodeList<InstructorDto>()
-
-            ResultWrapper.Success(instructors.map { it.toDomain() })
+            val response = apiService.getCatalogInstructors()
+            if (response.success && response.data != null) {
+                ResultWrapper.Success(response.data.map { it.toDomain() })
+            } else {
+                ResultWrapper.Error(response.message ?: "Failed to fetch instructors")
+            }
         } catch (e: Exception) {
             ResultWrapper.Error(e.message ?: "Failed to fetch instructors", e)
         }

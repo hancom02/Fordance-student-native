@@ -98,3 +98,40 @@ fun Instructor.toDto(): InstructorDto {
         active = active
     )
 }
+
+fun com.fordance.student.core.data.dto.SessionDetailDto.toDomain(): com.fordance.student.core.domain.model.SessionDetail {
+    return com.fordance.student.core.domain.model.SessionDetail(
+        id = id,
+        title = sessionName,
+        level = DanceLevel.fromRaw(level),
+        genre = com.fordance.student.core.domain.model.DanceGenre.fromRaw(genre),
+        videoUrl = videoUrl.orEmpty(),
+        thumbnailUrl = thumbnailUrl.orEmpty(),
+        durationText = duration ?: "45 phút",
+        classId = classId,
+        price = price ?: 0.0,
+        description = description.orEmpty(),
+        whatLearn = whatLearn.orEmpty(),
+        whatPrepare = whatPrepare.orEmpty(),
+        instructor = instructor?.toDomain(),
+        danceClass = danceClass?.toDomain(),
+        isJoined = isJoined,
+        isFavorited = isFavourited
+    )
+}
+
+fun com.fordance.student.core.data.dto.ClassDetailDto.toDomain(): com.fordance.student.core.domain.model.ClassDetail {
+    return com.fordance.student.core.domain.model.ClassDetail(
+        id = id,
+        className = className,
+        level = DanceLevel.fromRaw(level),
+        genre = com.fordance.student.core.domain.model.DanceGenre.fromRaw(genre),
+        imageCoverUrl = imageCoverUrl.orEmpty(),
+        instructor = instructor?.toDomain(),
+        introduce = introduce.orEmpty(),
+        whatLearn = whatLearn.orEmpty(),
+        whatPrepare = whatPrepare.orEmpty(),
+        sessions = sessions.map { it.toDomain() },
+        totalSessions = totalSessions
+    )
+}

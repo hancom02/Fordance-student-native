@@ -83,6 +83,16 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
+    // Retrofit & OkHttp
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.kotlinx)
+    implementation(libs.okhttp.core)
+    implementation(libs.okhttp.logging)
+
+    // Media3 ExoPlayer
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

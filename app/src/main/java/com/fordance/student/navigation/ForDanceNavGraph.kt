@@ -31,6 +31,8 @@ import com.fordance.student.core.theme.FordancePrimary
 import com.fordance.student.features.auth.presentation.AuthViewModel
 import com.fordance.student.features.auth.presentation.LoginScreen
 import com.fordance.student.features.auth.presentation.RegisterScreen
+import com.fordance.student.features.detail.presentation.courseclass.ClassDetailScreen
+import com.fordance.student.features.detail.presentation.session.SessionDetailScreen
 
 @Composable
 fun ForDanceNavGraph(
@@ -111,25 +113,22 @@ fun ForDanceNavGraph(
 
         composable(
             route = Screen.SessionDetail.route,
-            arguments = listOf(navArgument("sessionId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val sessionId = backStackEntry.arguments?.getLong("sessionId") ?: 0L
-            PlaceholderDetailScreen(
-                title = "Session Detail",
-                detail = "Session ID: $sessionId\n(ExoPlayer & Media3 Player integration coming in Change 3)",
-                onBack = { navController.popBackStack() }
+            arguments = listOf(navArgument("sessionId") { type = NavType.StringType })
+        ) {
+            SessionDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
         composable(
             route = Screen.ClassDetail.route,
-            arguments = listOf(navArgument("classId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            val classId = backStackEntry.arguments?.getLong("classId") ?: 0L
-            PlaceholderDetailScreen(
-                title = "Dance Class Detail",
-                detail = "Class ID: $classId\n(Full program lessons list coming in Change 3)",
-                onBack = { navController.popBackStack() }
+            arguments = listOf(navArgument("classId") { type = NavType.StringType })
+        ) {
+            ClassDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSession = { sessionId ->
+                    navController.navigate(Screen.SessionDetail.createRoute(sessionId.toLongOrNull() ?: 0L))
+                }
             )
         }
 

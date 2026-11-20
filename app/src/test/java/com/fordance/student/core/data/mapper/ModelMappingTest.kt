@@ -87,4 +87,47 @@ class ModelMappingTest {
         assertEquals(dto.id, mappedBackDto.id)
         assertEquals(dto.name, mappedBackDto.name)
     }
+
+    @Test
+    fun testSessionDetailDtoToDomain() {
+        val dto = com.fordance.student.core.data.dto.SessionDetailDto(
+            id = 505L,
+            sessionName = "Waacking 101",
+            level = "beginner",
+            genre = "wacking",
+            videoUrl = "https://example.com/waacking.mp4",
+            thumbnailUrl = "https://example.com/waack_thumb.jpg",
+            duration = "30 phút",
+            description = "Learn basic waacking rolls",
+            isJoined = true,
+            isFavourited = false
+        )
+
+        val domain = dto.toDomain()
+        assertEquals(505L, domain.id)
+        assertEquals("Waacking 101", domain.title)
+        assertEquals(DanceLevel.BEGINNER, domain.level)
+        assertEquals("Waacking", domain.genre.displayName)
+        assertEquals(true, domain.isJoined)
+        assertEquals(false, domain.isFavorited)
+    }
+
+    @Test
+    fun testClassDetailDtoToDomain() {
+        val dto = com.fordance.student.core.data.dto.ClassDetailDto(
+            id = 606L,
+            className = "Locking Boot Camp",
+            level = "intermediate",
+            genre = "locking",
+            imageCoverUrl = "https://example.com/locking.jpg",
+            introduce = "Master the funk",
+            totalSessions = 5
+        )
+
+        val domain = dto.toDomain()
+        assertEquals(606L, domain.id)
+        assertEquals("Locking Boot Camp", domain.className)
+        assertEquals(DanceLevel.INTERMEDIATE, domain.level)
+        assertEquals(5, domain.totalSessions)
+    }
 }
